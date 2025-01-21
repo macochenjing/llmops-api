@@ -26,8 +26,22 @@ class Response:
 
 def json(data: Response = None):
     """基础的响应接口"""
-    return jsonify(data), 200
 
+    response = jsonify(data)
+
+    # 解决跨域
+
+    # 方案1 直接在响应头添加相关字段
+
+    # # 添加跨域响应头
+    # response.headers['Access-Control-Allow-Origin'] = 'http://127.0.0.1:5173'
+    # response.headers['Access-Control-Allow-Headers'] = 'Content-Type'
+    # response.headers['Access-Control-Allow-Methods'] = 'GET,POST'
+    # response.headers['Access-Control-Allow-Credentials'] = 'true'
+    #
+    # return response, 200
+
+    return response, 200
 
 def success_json(data: Any = None):
     """成功数据响应"""

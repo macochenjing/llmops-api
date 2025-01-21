@@ -11,6 +11,7 @@
 import os
 
 from flask import Flask
+from flask_cors import CORS
 from flask_migrate import Migrate
 
 from config import LLmConfig
@@ -50,7 +51,17 @@ class Http(Flask):
         #     _ = App() # 确保能够检索到这个App model, 就是说如果未使用到App这个类是不会去创建
         #     db.create_all()
 
-        # 5.注册应用路由
+        # 5.解决前后端跨域问题 方案2
+        CORS(self, resource={
+            r"/*":{
+                "origins":'*',
+                "supports_credentials":True,
+                # "methods":["GET","POST"],
+                # "allow_headers":["Content-Type"],
+            }
+        })
+
+        # 6.注册应用路由
         router.register_router(self)
 
     def _register_error_handler(self, error: Exception):

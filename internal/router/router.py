@@ -29,6 +29,9 @@ class Router:
 
         bp.add_url_rule("/apps/<uuid:app_id>/debug", methods=["POST"], view_func=self.app_handler.debug)
 
+        # 跨域，每个请求都要添加OPTIONS方法选项, 所属方案1
+        # bp.add_url_rule("/apps/<uuid:app_id>/debug", methods=["POST", "OPTIONS"], view_func=self.app_handler.debug)
+
         # bp.add_url_rule("/app", methods=["POST"], view_func=self.app_handler.create_app)
         #
         # # <uuid:id> uuid是类型, 绑定了id
