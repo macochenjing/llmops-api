@@ -52,7 +52,7 @@ class Http(Flask):
         #     db.create_all()
 
         # 5.解决前后端跨域问题 方案2
-        CORS(self, resource={
+        CORS(self, resources={
             r"/*":{
                 "origins":'*',
                 "supports_credentials":True,
