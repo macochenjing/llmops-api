@@ -13,14 +13,19 @@ from openai import OpenAI
 
 from injector import inject
 from dataclasses import dataclass
+from operator import itemgetter
+
 
 from internal.exception import FailException
 from internal.schema.app_schema import CompletionReq
 from internal.service import AppService
 from pkg.response import success_json, validate_error_json
 
-from langchain_core.prompts import ChatPromptTemplate
+from langchain_core.prompts import ChatPromptTemplate,MessagesPlaceholder
+from langchain_community.chat_message_histories import FileChatMessageHistory
+from langchain_core.runnables import RunnablePassthrough,RunnableLambda
 from langchain_openai import ChatOpenAI
+from langchain.memory import ConversationBufferWindowMemory
 from langchain_core.output_parsers import StrOutputParser
 
 
@@ -56,17 +61,47 @@ class AppHandler:
         if not req.validate():
             return validate_error_json(req.errors)
 
-        # 版本3 langchain 链实现
-        # 2.构建组件
-        prompt = ChatPromptTemplate.from_template("{query}")
+        # 2.创建prompt与记忆
+        prompt = ChatPromptTemplate.from_messages([
+            ("system","你是一个强大的聊天机器人，能够根据用户的提问回复对应的问题"),
+            MessagesPlaceholder("history"),
+            ("human", "{query}"),
+        ])
+
+        memory = ConversationBufferWindowMemory(
+            k=3,
+            input_key="query",
+            output_key="output",
+            return_messages=True,
+            chat_memory=FileChatMessageHistory("./storage/memory/chat_history.txt"),
+        )
+
+        # 3.创建llm
         llm = ChatOpenAI(model="gpt-3.5-turbo-16k")
-        parser = StrOutputParser()
 
-        # 3.构建链
-        chain = prompt | llm | parser
+        # 4.创建应用
+        chain = RunnablePassthrough.assign(
+            history=RunnableLambda(memory.load_memory_variables) | itemgetter("history")
+        )| prompt | llm | StrOutputParser()
 
-        # 4.调用链
-        content = chain.invoke({"query":req.query.data})
+        # 5.调用链生成内容
+        chain_input = {"query": req.query.data}
+        content = chain.invoke(chain_input)
+        memory.save_context(chain_input, {"output": content})
+
+
+
+        # # 版本3 langchain 链实现
+        # # 2.构建组件
+        # prompt = ChatPromptTemplate.from_template("{query}")
+        # llm = ChatOpenAI(model="gpt-3.5-turbo-16k")
+        # parser = StrOutputParser()
+        #
+        # # 3.构建链
+        # chain = prompt | llm | parser
+        #
+        # # 4.调用链
+        # content = chain.invoke({"query":req.query.data})
 
         return success_json({"content": content})
 
