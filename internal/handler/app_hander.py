@@ -10,6 +10,7 @@ import uuid
 from uuid import UUID
 import os
 from openai import OpenAI
+from typing import Dict,Any
 
 from injector import inject
 from dataclasses import dataclass
@@ -23,10 +24,12 @@ from pkg.response import success_json, validate_error_json
 
 from langchain_core.prompts import ChatPromptTemplate,MessagesPlaceholder
 from langchain_community.chat_message_histories import FileChatMessageHistory
-from langchain_core.runnables import RunnablePassthrough,RunnableLambda
+from langchain_core.tracers import Run
+from langchain_core.runnables import RunnablePassthrough,RunnableLambda,RunnableConfig
 from langchain_openai import ChatOpenAI
 from langchain.memory import ConversationBufferWindowMemory
 from langchain_core.output_parsers import StrOutputParser
+
 
 
 @inject
@@ -52,6 +55,35 @@ class AppHandler:
     def delete_app(self, id: uuid.UUID):
         appobj = self.app_service.delete_app(id)
         return success_json(f"应用已经成功被删除，id为: {appobj.id}")
+
+    @classmethod
+    def _load_memory_variables(cls, input: Dict[str, Any], config: RunnableConfig) -> Dict[str, Any]:
+        '''
+        加载记忆变量信息
+        :param input:  字典，键是字符串，值是任意值
+        :return:
+        '''
+
+        # 1.从config中获取configurable
+        configurable = config.get("configurable",{})
+        configurable_memory = configurable.get("memory", None)
+        if configurable_memory is not None and isinstance(configurable_memory, BaseMemory):
+            return configurable_memory.load_memory_variables(input)
+
+        return {"history":[]}
+
+    @classmethod
+    def _save_context(cls, run_obj:Run, config:RunnableConfig) -> None:
+        """
+        存储对应的上下文信息到记忆实体中
+        :param run_obj:
+        :param config:
+        :return:
+        """
+        configurable = config.get("configurable", {})
+        configurable_memory = configurable.get("memory", None)
+        if configurable_memory is not None and isinstance(configurable_memory, BaseMemory):
+            configurable_memory.save_context(run_obj.inputs, run_obj.outputs)
 
     def debug(self, app_id: UUID):
         """聊天接口"""
@@ -80,30 +112,67 @@ class AppHandler:
         llm = ChatOpenAI(model="gpt-3.5-turbo-16k")
 
         # 4.创建应用
-        chain = RunnablePassthrough.assign(
-            history=RunnableLambda(memory.load_memory_variables) | itemgetter("history")
-        )| prompt | llm | StrOutputParser()
+        chain = (RunnablePassthrough.assign(
+            history=RunnableLambda(self._load_memory_variables) | itemgetter("history")
+        )| prompt | llm | StrOutputParser()).with_listeners(on_end=self._save_context)
 
         # 5.调用链生成内容
         chain_input = {"query": req.query.data}
-        content = chain.invoke(chain_input)
-        memory.save_context(chain_input, {"output": content})
-
-
-
-        # # 版本3 langchain 链实现
-        # # 2.构建组件
-        # prompt = ChatPromptTemplate.from_template("{query}")
-        # llm = ChatOpenAI(model="gpt-3.5-turbo-16k")
-        # parser = StrOutputParser()
-        #
-        # # 3.构建链
-        # chain = prompt | llm | parser
-        #
-        # # 4.调用链
-        # content = chain.invoke({"query":req.query.data})
+        content = chain.invoke(chain_input, config={"configurable":{"memory":memory}})
 
         return success_json({"content": content})
+
+    # def debug(self, app_id: UUID):
+    #     """聊天接口"""
+    #
+    #     # 1.提取从接口中获取的输入
+    #     req = CompletionReq()
+    #     if not req.validate():
+    #         return validate_error_json(req.errors)
+    #
+    #     # 2.创建prompt与记忆
+    #     prompt = ChatPromptTemplate.from_messages([
+    #         ("system","你是一个强大的聊天机器人，能够根据用户的提问回复对应的问题"),
+    #         MessagesPlaceholder("history"),
+    #         ("human", "{query}"),
+    #     ])
+    #
+    #     memory = ConversationBufferWindowMemory(
+    #         k=3,
+    #         input_key="query",
+    #         output_key="output",
+    #         return_messages=True,
+    #         chat_memory=FileChatMessageHistory("./storage/memory/chat_history.txt"),
+    #     )
+    #
+    #     # 3.创建llm
+    #     llm = ChatOpenAI(model="gpt-3.5-turbo-16k")
+    #
+    #     # 4.创建应用
+    #     chain = RunnablePassthrough.assign(
+    #         history=RunnableLambda(memory.load_memory_variables) | itemgetter("history")
+    #     )| prompt | llm | StrOutputParser()
+    #
+    #     # 5.调用链生成内容
+    #     chain_input = {"query": req.query.data}
+    #     content = chain.invoke(chain_input)
+    #     memory.save_context(chain_input, {"output": content})
+    #
+    #
+    #
+    #     # # 版本3 langchain 链实现
+    #     # # 2.构建组件
+    #     # prompt = ChatPromptTemplate.from_template("{query}")
+    #     # llm = ChatOpenAI(model="gpt-3.5-turbo-16k")
+    #     # parser = StrOutputParser()
+    #     #
+    #     # # 3.构建链
+    #     # chain = prompt | llm | parser
+    #     #
+    #     # # 4.调用链
+    #     # content = chain.invoke({"query":req.query.data})
+    #
+    #     return success_json({"content": content})
 
     # def completion(self):
     #     """聊天接口"""
