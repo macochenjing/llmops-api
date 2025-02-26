@@ -28,133 +28,144 @@
 # for i in range(1,10):
 #     print(i)
 
-from typing import List,Optional
+from typing import List, Tuple
+
 
 class Solution:
 
-    maxlist = []
-    maxlen = 0
+    # 将二维矩阵存储到类属性，避免到处传递
+    inputgrid = None
 
-    def copy_to_max(self, curlist: List[int]):
-        self.maxlist = [num for num in curlist]
+    # 当前最长有效序列的下标
+    maxseq = []
 
-    def compare_best(self, curlist: List[int]):
+    # 行数与列数
+    ROWS = 0
+    COLS = 0
 
-        if len(curlist) < len(self.maxlist):
-            return
+    # 保留当前的最大有效序列长度
+    maxlength = 0
 
-        if len(curlist) > len(self.maxlist):
-            self.copy_to_max(curlist)
+    # 定义四个方向
+    LEFT_TOP     = 1
+    RIGHT_TOP    = 2
+    RIGHT_BOTTOM = 3
+    LEFT_BOTTOM  = 4
 
-        for i in range(0, len(curlist)):
+    def condition_required(self, row, col, nextrow, nextcol):
 
-            if curlist[i] < self.maxlist[i]:
-                return
-            if curlist[i] == self.maxlist[i]:
-                continue
-            self.copy_to_max(curlist)
+        if nextrow < 0 or nextrow >= self.ROWS or nextcol < 0 or nextcol >= self.COLS:
+            return False
 
-            return
+        curnum = self.inputgrid[row][col]
+        nextnum = self.inputgrid[nextrow][nextcol]
 
-
-    def input_next_position(self, leftsourcelist: List[int], flagdict: dict, curlist: List[int], nextpos: int) -> Optional[int]:
-
-        # 如果maxlist达到了最大长度2n-1，则每次递归前可以判断curlist前缀是否有可能大于maxlist,如果不能则直接放弃递归
-        if len(self.maxlist) >= self.maxlen:
-            for i in range(0, len(curlist)):
-                # 等位相同的继续比较
-                # 等位小于maxlist的curlist不可能出现最优，直接返回
-                if curlist[i] < self.maxlist[i]:
-                    print("curlist:",curlist)
-                    print("maxlist:",self.maxlist)
-                    return i
-                # 等位大于maxlist的curlist可能会比maxlist优，则跳出循环，继续往下执行
-                if curlist[i] > self.maxlist[i]:
-                    break
+        if (curnum == 1 or curnum == 0) and nextnum == 2:
+            return True
+        if curnum == 2 and nextnum == 0:
+            return True
+        return False
 
 
-        # 1. 每一次递归，开始循环前,先判断当前位置是否被之前的数字限定(数字i要出现两
-        #    次，并且距离为i,通过flagdict标记判断),如果倍限定,则使用限定数字填充,然
-        #    后直到当前位置未被限定
+    def left_top_search(self, row: int, col: int, turncount: int, depth: int) -> Tuple[int, List[Tuple[int,int]]]:
+        nextrow = row-1
+        nextcol = col-1
+        if not self.condition_required(row, col, nextrow, nextcol):
+            return 0, None
+        next_directions = [self.LEFT_TOP, self.RIGHT_TOP]
+        return self.deep_search(nextrow, nextcol, turncount, self.LEFT_TOP, depth+1, next_directions)
 
-        while nextpos > 0 and flagdict.get(nextpos):
-            curlist.append(flagdict[nextpos])
-            nextpos += 1
+    def left_bottom_search(self, row: int, col: int, turncount: int, depth: int) -> Tuple[int, List[Tuple[int,int]]]:
+        nextrow = row + 1
+        nextcol = col - 1
 
-        # 2. 当leftsourcelist中无数字，与maxlist比较哪个最优，然后回溯
-        if len(leftsourcelist) <= 0:
-            self.compare_best(curlist)
-            return
+        if not self.condition_required(row, col, nextrow, nextcol):
+            return 0,None
 
-        com = None
-        # 3. 使用leftsourcelist中的数字填充, 并且使用flagdict标记限定位置(数字1不能限定),然后继续下一个位置的递归
-        for i in range(0, len(leftsourcelist)):
+        next_directions = [self.LEFT_BOTTOM, self.LEFT_TOP]
+        return self.deep_search(nextrow, nextcol, turncount, self.LEFT_BOTTOM, depth+1, next_directions)
 
-            if com is not None and com == nextpos:
-                # 当前位置不能比maxlist对应的com位置大是没希望最优的
-                if leftsourcelist[i] < self.maxlist[com]:
+    def right_top_search(self, row: int, col: int, turncount: int, depth: int) -> Tuple[int, List[Tuple[int,int]]]:
+        nextrow = row - 1
+        nextcol = col + 1
+        if not self.condition_required(row, col, nextrow, nextcol):
+            return 0,None
+        next_directions = [self.RIGHT_TOP, self.RIGHT_BOTTOM]
+        return self.deep_search(nextrow, nextcol, turncount, self.RIGHT_TOP, depth+1, next_directions)
+
+    def right_bottom_search(self, row: int, col: int, turncount: int, depth: int) -> Tuple[int, List[Tuple[int,int]]]:
+        nextrow = row + 1
+        nextcol = col + 1
+        if not self.condition_required(row, col, nextrow, nextcol):
+            return 0,None
+        next_directions = [self.RIGHT_BOTTOM, self.LEFT_BOTTOM]
+        return self.deep_search(nextrow, nextcol, turncount, self.RIGHT_BOTTOM, depth+1, next_directions)
+
+    def deep_search(self, row: int, col: int, turncount: int, curdirect: int, depth: int, directions: List[int]) -> Tuple[int, List[Tuple[int,int]]]:
+
+        curnum = self.inputgrid[row][col]
+        # print("deep_search: ", "row:", row, "col:", col, "curnum:", curnum, "directions:", directions)
+        maxlen = 0
+        maxseq = []
+        for direct in directions:
+            curlen = 0
+            curseq = None
+            tmpcount = turncount
+            if direct != curdirect: #方向不同就是要旋转
+                tmpcount += 1
+
+            print("tmpcount:", tmpcount)
+            # 仅仅旋转一次
+            if tmpcount <= 1:
+                if direct == self.LEFT_TOP:
+                    step = row if row < col else col
+                    if tmpcount == 0 or (tmpcount == 1 and depth + step > self.maxlength):
+                        curlen, curseq = self.left_top_search(row, col, tmpcount, depth)
+                elif direct == self.RIGHT_TOP:
+                    step = row if row < self.COLS-col-1 else self.COLS-col-1
+                    if tmpcount == 0 or (tmpcount == 1 and depth + step > self.maxlength):
+                        curlen, curseq = self.right_top_search(row, col, tmpcount, depth)
+                elif direct == self.LEFT_BOTTOM:
+                    step = col if col < self.ROWS-row-1 else self.ROWS-row-1
+                    if tmpcount == 0 or (tmpcount == 1 and depth + step > self.maxlength):
+                        curlen, curseq = self.left_bottom_search(row, col, tmpcount, depth)
+                else:
+                    step = self.ROWS-row-1 if self.ROWS-row-1 < self.COLS-col-1 else self.COLS-col-1
+                    if tmpcount == 0 or (tmpcount == 1 and depth + step > self.maxlength):
+                        curlen, curseq = self.right_bottom_search(row, col, tmpcount, depth)
+
+            curlen += 1
+            if curlen > maxlen:
+                maxlen = curlen
+                if not curseq:
+                    curseq = []
+                curseq.insert(0, (row, col))
+                maxseq = curseq
+
+        # print("deep_search: ", "row:", row, "col:", col, "curnum:", curnum, "directions:", directions, "maxlen:", maxlen)
+        return maxlen,maxseq
+
+
+    def lenOfVDiagonal(self, grid: List[List[int]]) -> int:
+
+        self.inputgrid = grid
+        self.ROWS = len(self.inputgrid)
+        self.COLS = len(self.inputgrid[0])
+        for row in range(0, self.ROWS):
+            for col in range(0, self.COLS):
+                # 遍历，每个序列必须从1开始
+                if self.inputgrid[row][col] != 1:
                     continue
+                # 每次从1递归开始，并且是四个方向
+                seqlength, curseq = self.deep_search(row, col, -1, 0, 1, [self.LEFT_TOP, self.RIGHT_TOP, self.RIGHT_BOTTOM, self.LEFT_BOTTOM])
+                #每次递归结束，保留最大的长度
+                if seqlength > self.maxlength:
+                    self.maxlength = seqlength
+                    self.maxseq = curseq
 
-                # 有希望是最优的，则重置com, 然后下一个递归中可以与maxlist继续比较
-                com = None
-
-            # 1不能限定
-            if leftsourcelist[i] != 1:
-                # 先判断是否有冲突，限定的数字不能被占用，如果被占用则是有冲突的，跳过当前数字
-                newpos = len(curlist)
-                newlimitindex = newpos + leftsourcelist[i]
-                if flagdict.get(newlimitindex):
-                    continue
-                # 标记
-                flagdict[newlimitindex] = leftsourcelist[i]
-
-            # 将未被限定数字添加到当前序列后面
-            curlist.append(leftsourcelist[i])
-
-            newpos = len(curlist)
-            # 计算剩余列表
-            newleft = leftsourcelist[0:i] + leftsourcelist[i+1:]
-
-            # 下一次递归
-            com = self.input_next_position(newleft, flagdict, curlist, newpos)
-
-            # 回溯回来需要修正flagdict与curlist
-            # 去掉当前数字限定的标记
-            if leftsourcelist[i] != 1:
-                del flagdict[newlimitindex]
-
-            #截取curlist
-            curlist = curlist[0:newpos-1]
-
-            # 没希望比当前maxlist更好，则继续回退到com位置
-            if com is not None:
-                if com < nextpos:
-                    return com
+        #return self.maxlength, self.maxseq
+        return self.maxlength
 
 
-    def constructDistancedSequence(self, n: int) -> List[int]:
-        # 1. 定义初始化全局变量--当前最长有效序列:maxlist,初始化[1,n]的未被使用或填充到序
-        #    列的数字列表: leftsourcelist,标记位字典:flagdict,
-        #    当前列表:curlist,下个位置nextpos
-        #    (0开始)
-        # 2. 编写递归函数，将leftsourcelist,flagdict,curlist,nextpos传递给递
-        #    归函数
-
-        if n < 1 or n > 20:
-            return None
-
-        tl = [i for i in range(1, n + 1)]
-        leftsourcelist = tl[::-1]
-        flagdict = {}
-        curlist = []
-        nextpos = 0
-        self.maxlen = 2*n-1
-
-        self.input_next_position(leftsourcelist, flagdict, curlist, nextpos)
-
-        return self.maxlist
-
-
-ts = Solution()
-
-print(ts.constructDistancedSequence(12))
+sobj = Solution()
+print(sobj.lenOfVDiagonal([[2,2,1,2,2],[2,0,2,2,0],[2,0,1,1,0],[1,0,2,2,2],[2,0,0,2,2]]))

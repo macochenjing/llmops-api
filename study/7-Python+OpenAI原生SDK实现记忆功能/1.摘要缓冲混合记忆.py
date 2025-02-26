@@ -28,8 +28,7 @@ class ConversationSummaryBufferMemory:
         self.summary = summary
         self.chat_histories = [] if chat_histories is None else chat_histories
         self.max_tokens = max_tokens
-        # self._client = OpenAI(base_url='https://api.xty.app/v1') # 如果api使用的是中转代理则需要写base_url
-        self._client = OpenAI()
+        self._client = OpenAI(base_url='https://api.xty.app/v1')
 
     @classmethod
     def get_num_tokens(cls, query: str) -> int:

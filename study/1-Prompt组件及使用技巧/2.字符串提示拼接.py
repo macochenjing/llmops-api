@@ -7,7 +7,6 @@
 """
 from langchain_core.prompts import PromptTemplate
 
-# 拼接的时候，第一个必须是提示词魔板，不能是字符串
 prompt = (
         PromptTemplate.from_template("请讲一个关于{subject}的冷笑话")
         + ",让我开心下" +

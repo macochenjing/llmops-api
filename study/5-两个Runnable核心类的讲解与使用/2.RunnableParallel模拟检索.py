@@ -37,13 +37,6 @@ llm = ChatOpenAI(model="gpt-3.5-turbo-16k")
 parser = StrOutputParser()
 
 # 4.构建链
-
-# chain = RunnableParallel({
-#             "context": lambda x: retrieval(x["query"]),
-#             "query": itemgetter("query"),
-#         }) | prompt | llm | parser
-
-# 省略写法
 chain = {
             "context": lambda x: retrieval(x["query"]),
             "query": itemgetter("query"),

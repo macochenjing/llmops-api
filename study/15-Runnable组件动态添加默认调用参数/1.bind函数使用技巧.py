@@ -15,13 +15,6 @@ dotenv.load_dotenv()
 prompt = ChatPromptTemplate.from_messages([
     ("human", "{query}")
 ])
-
-# 停止词传递-1
-# llm = ChatOpenAI(model="gpt-4o", model_kwargs={"stop":"world"}) # 注意这里的停止词有随机性 因为输出是一个token一个token输出，同一个词在不同语义下解析的token数不一样，所以就可能检测不到world
-
-# 停止词传递-2
-# chain = prompt | llm.bind(stop="世界") | StrOutputParser()
-
 llm = ChatOpenAI(model="gpt-3.5-turbo")
 
 chain = prompt | llm.bind(model="gpt-4o") | StrOutputParser()

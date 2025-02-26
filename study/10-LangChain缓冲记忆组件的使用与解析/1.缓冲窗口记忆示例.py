@@ -14,9 +14,6 @@ from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_core.runnables import RunnablePassthrough, RunnableLambda
 from langchain_openai import ChatOpenAI
 
-
-print(ConversationTokenBufferMemory.__mro__)
-exit(0)
 dotenv.load_dotenv()
 
 # 1.创建提示模板&记忆

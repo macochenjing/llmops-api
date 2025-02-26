@@ -22,7 +22,6 @@ prompt = ChatPromptTemplate.from_messages([
 # 2.创建大语言模型
 llm = ChatOpenAI(model="gpt-3.5-turbo-16k")
 
-# 批处理， langchain会开启多个线程去分别发送请求，然后汇总给到应用
 ai_messages = llm.batch([
     prompt.invoke({"query": "你好，你是?"}),
     prompt.invoke({"query": "请讲一个关于程序员的冷笑话"}),
