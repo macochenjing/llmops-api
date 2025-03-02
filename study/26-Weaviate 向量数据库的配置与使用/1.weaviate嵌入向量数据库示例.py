@@ -40,7 +40,7 @@ metadatas = [
 ]
 
 # 2.创建连接客户端
-client = weaviate.connect_to_local("192.168.2.120", "8080")
+client = weaviate.connect_to_local("127.0.0.1", "8080")
 # client = weaviate.connect_to_wcs(
 #     cluster_url="https://eftofnujtxqcsa0sn272jw.c0.us-west3.gcp.weaviate.cloud",
 #     auth_credentials=AuthApiKey("21pzYy0orl2dxH9xCoZG1O2b0euDeKJNEbB0"),
@@ -55,12 +55,14 @@ db = WeaviateVectorStore(
     embedding=embedding,
 )
 
+
 # 4.添加数据
 ids = db.add_texts(texts, metadatas)
 print(ids)
 
 # 5.执行相似性搜索
 filters = Filter.by_property("page").greater_or_equal(5)
+
 print(db.similarity_search_with_score("笨笨", filters=filters))
 retriever = db.as_retriever()
 print(retriever.invoke("笨笨"))
