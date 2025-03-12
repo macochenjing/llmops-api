@@ -78,7 +78,7 @@ metadata_filed_info = [
 self_query_retriever = SelfQueryRetriever.from_llm(
     llm=ChatOpenAI(model="gpt-3.5-turbo-16k", temperature=0),
     vectorstore=db,
-    document_contents="电影的名字",
+    document_contents="电影的名字", # 文档内容说明或描述
     metadata_field_info=metadata_filed_info,
     enable_limit=True,
 )
