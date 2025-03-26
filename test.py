@@ -35,7 +35,15 @@ llm = ChatDeepSeek(
     # other params...
 )
 
-ai_message = llm.invoke(prompt.invoke({"query": "请问你是？你是哪个大语言模型"}))
+#ai_message = llm.invoke(prompt.invoke({"query": "请你写一首乡村音乐的歌，歌词主要描述黄花风铃木盛开，春天的美好，柔情，轻松越快的心情，少女情怀，未来充满希望的歌曲"}))
+ai_message = llm.invoke(prompt.invoke(
+    {
+        "query":
+        """
+        pycharm 其它项目有导入错误的红色波浪线提示，有一个项目没有，如何解决
+        """
+
+    }))
 
 print(ai_message.type)
 print(ai_message.content)
