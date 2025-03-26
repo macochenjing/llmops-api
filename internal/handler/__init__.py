@@ -7,5 +7,9 @@
 """
 
 from .app_hander import AppHandler
+from .builtin_tool_handler import BuiltinToolHandler
 
-__all__ = ["AppHandler"]
+__all__ = [
+    "AppHandler",
+    "BuiltinToolHandler",
+]
