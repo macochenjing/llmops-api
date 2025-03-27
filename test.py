@@ -40,7 +40,7 @@ ai_message = llm.invoke(prompt.invoke(
     {
         "query":
         """
-        pycharm 其它项目有导入错误的红色波浪线提示，有一个项目没有，如何解决
+        from torch.utils.data import DataLoader 原型是怎样的
         """
 
     }))

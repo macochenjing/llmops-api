@@ -8,7 +8,7 @@
 
 from pkg.sql import SQLAlchemy
 from injector import Binder, Module
-from internal.extension.database_extention import db
+from internal.extension.database_extension import db
 from flask_migrate import Migrate
 from internal.extension.migrate_extension import migrate
 

@@ -18,7 +18,7 @@ from sqlalchemy import (
     Index,
     text,
 )
-from internal.extension.database_extention import db
+from internal.extension.database_extension import db
 
 class App(db.Model):
     """ai应用基础模型类型"""
