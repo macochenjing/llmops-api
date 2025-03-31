@@ -34,20 +34,25 @@ class ApiToolHandler:
 
     def get_api_tool_providers_with_page(self):
         """获取API工具提供者列表信息，该接口支持分页"""
+        # get请求参数没在url中的，要把get参数（request.args）传入
         req = GetApiToolProvidersWithPageReq(request.args)
-        if not req.validate():
+        if not req.validate(): # 失败错误信息包装在req.errors
             return validate_error_json(req.errors)
 
         api_tool_providers, paginator = self.api_tool_service.get_api_tool_providers_with_page(req)
 
+        # many=True 表示返回的数据是list类型
         resp = GetApiToolProvidersWithPageResp(many=True)
 
+        # PageModel会被自动序列化 因为PageModel是被@dataclass修饰
         return success_json(PageModel(list=resp.dump(api_tool_providers), paginator=paginator))
 
     def create_api_tool_provider(self):
         """创建自定义API工具"""
+
+        # post参数无需显示传入
         req = CreateApiToolReq()
-        if not req.validate():
+        if not req.validate(): # 失败错误信息包装在req.errors
             return validate_error_json(req.errors)
 
         self.api_tool_service.create_api_tool(req)
@@ -78,6 +83,7 @@ class ApiToolHandler:
 
         resp = GetApiToolProviderResp()
 
+        # 响应包已经封装
         return success_json(resp.dump(api_tool_provider))
 
     def delete_api_tool_provider(self, provider_id: UUID):

@@ -45,6 +45,7 @@ class CreateApiToolReq(FlaskForm):
     ])
     headers = ListField("headers", default=[])
 
+    # 命名: validate_headers, 表示要校验headers
     @classmethod
     def validate_headers(cls, form, field):
         """校验headers请求的数据是否正确，涵盖列表校验，列表元素校验"""

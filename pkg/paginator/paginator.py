@@ -32,6 +32,8 @@ class PaginatorReq(FlaskForm):
 @dataclass
 class Paginator:
     """分页器"""
+
+    # 序列化时，只会对下面四个属性序列化, self.db不会被序列化
     total_page: int = 0  # 总页数
     total_record: int = 0  # 总条数
     current_page: int = 1  # 当前页数
@@ -46,6 +48,7 @@ class Paginator:
     def paginate(self, select) -> list[Any]:
         """对传入的查询进行分页"""
         # 1.调用db.paginate进行数据分页
+        # error_out如果是True， 则在没有数据的情况下报错
         p = self.db.paginate(select, page=self.current_page, per_page=self.page_size, error_out=False)
 
         # 2.计算总页数+总条数

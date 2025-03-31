@@ -103,6 +103,7 @@ class ApiToolService(BaseService):
         # 2.构建筛选器
         filters = [ApiToolProvider.account_id == account_id]
         if req.search_word.data:
+            # ilike 模糊搜索，忽略大小写
             filters.append(ApiToolProvider.name.ilike(f"%{req.search_word.data}%"))
 
         # 3.执行分页并获取数据
