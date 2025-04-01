@@ -38,6 +38,9 @@ class VectorDatabaseService:
             embedding=OpenAIEmbeddings(model="text-embedding-3-small")
         )
 
+        # to do close client 要通过包装管理器才行，这里为避免警告提示，直接关闭
+        self.client.close()
+
     def get_retriever(self) -> VectorStoreRetriever:
         """获取检索器"""
         return self.vector_store.as_retriever()
@@ -46,3 +49,9 @@ class VectorDatabaseService:
     def combine_documents(cls, documents: list[Document]) -> str:
         """将对应的文档列表使用换行符进行合并"""
         return "\n\n".join([document.page_content for document in documents])
+
+    def close(self):
+        """显式关闭连接"""
+        if self.client:
+            self.client.close()
+
