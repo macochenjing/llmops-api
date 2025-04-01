@@ -65,7 +65,7 @@ class ApiProviderManager(BaseModel):
 
     @classmethod
     def _create_model_from_parameters(cls, parameters: list[dict]) -> Type[BaseModel]:
-        """根据传递的parameters参数创建BaseModel子类"""
+        """根据传递的parameters参数创建BaseModel子类, 这里是子类对象，也就是子类定义，而不是实例"""
         fields = {}
         for parameter in parameters:
             field_name = parameter.get("name")
@@ -78,6 +78,7 @@ class ApiProviderManager(BaseModel):
                 Field(description=field_description),
             )
 
+        # 子类名称叫: DynamicModel
         return create_model("DynamicModel", **fields)
 
     def get_tool(self, tool_entity: ToolEntity) -> BaseTool:
