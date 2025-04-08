@@ -14,7 +14,7 @@ from flask_migrate import Migrate
 
 from config import LLmConfig
 from internal.router import Router
-from internal.extension import logging_extension
+from internal.extension import logging_extension,redis_extension
 from internal.exception import CustomException
 from pkg.response import json, Response, HttpCode
 from pkg.sql import SQLAlchemy
@@ -47,6 +47,9 @@ class Http(Flask):
 
         # 初始化数据库迁移的目录
         migrate.init_app(self, db, directory="internal/migration")
+
+        # 初始化redis
+        redis_extension.init_app(self)
 
         # 初始化日志记录器
         logging_extension.init_app(self)
