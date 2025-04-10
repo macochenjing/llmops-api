@@ -28,6 +28,7 @@ from langchain_openai import ChatOpenAI
 from langchain.memory import ConversationBufferWindowMemory
 from langchain_core.memory import BaseMemory
 from langchain_core.output_parsers import StrOutputParser
+from internal.task.demo_task import demo_task
 
 #from internal.core.tools.builtin_tools.providers import BuiltinProviderManager
 
@@ -269,5 +270,6 @@ class AppHandler:
         return "\n\n".join([document.page_content for document in documents])
 
     def ping(self):
-        raise FailException("数据未找到")
+        demo_task.delay(uuid.uuid4())
+        return {"ping":"pong"}
         # return {"ping":"pong"}

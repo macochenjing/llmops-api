@@ -36,5 +36,7 @@ appserver = Http(
     router=injector.get(Router)
 )
 
+celery = appserver.extensions["celery"]
+
 if __name__ == "__main__":
     appserver.run(debug=True)
