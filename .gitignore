@@ -1,5 +1,6 @@
 .env
 tmp/*
 storage/*
+internal/migration/*
 .idea/*
 venv/*
