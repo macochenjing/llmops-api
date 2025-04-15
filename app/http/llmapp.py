@@ -19,13 +19,13 @@ from internal.router import Router
 from internal.server import Http
 from pkg.sql import SQLAlchemy
 from app.http.module import ExtensionModule
+from .module import injector
 
 # 初始化加载.env文件中所有定义的变量到环境变量中
 dotenv.load_dotenv()
 
 conf = LLmConfig()
 
-injector = Injector([ExtensionModule])
 
 
 appserver = Http(

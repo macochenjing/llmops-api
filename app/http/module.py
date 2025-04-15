@@ -7,7 +7,7 @@
 """
 
 from pkg.sql import SQLAlchemy
-from injector import Binder, Module
+from injector import Module, Binder, Injector
 from redis import Redis
 
 from internal.extension.database_extension import db
@@ -22,3 +22,4 @@ class ExtensionModule(Module):
         binder.bind(Migrate, to=migrate)
         binder.bind(Redis, to=redis_client)
 
+injector = Injector([ExtensionModule])
