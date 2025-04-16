@@ -32,7 +32,7 @@ class EmbeddingsService:
         #     model_name="Alibaba-NLP/gte-multilingual-base",
         #     cache_folder=os.path.join(os.getcwd(), "internal", "core", "embeddings"),
         #     model_kwargs={
-        #         "trust_remote_code": True,
+        #         "trust_remote_code": True, # 第一次执行到这里，将会从云端下载嵌入模型到上述设置的路径
         #     }
         # )
         self._embeddings = OpenAIEmbeddings(model="text-embedding-3-small")
