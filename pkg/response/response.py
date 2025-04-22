@@ -6,13 +6,13 @@
 @File   : response.py
 """
 
-from dataclasses import field,dataclass
-from typing import Any
 
-from flask import jsonify
+from dataclasses import field, dataclass
+from typing import Any, Union, Generator
+
+from flask import jsonify, stream_with_context, Response as FlaskResponse
 
 from .http_code import HttpCode
-
 
 @dataclass   # 默认生成构造函数
 class Response:
@@ -91,3 +91,30 @@ def unauthorized_message(msg: str = ""):
 def forbidden_message(msg: str = ""):
     """无权限消息响应"""
     return message(code=HttpCode.FORBIDDEN, msg=msg)
+
+def compact_generate_response(response: Union[Response, Generator]) -> FlaskResponse:
+    """统一合并处理块输出以及流式事件输出"""
+    # 1.检测下是否为块输出(Response)
+    if isinstance(response, Response):
+        return json(response)
+    else:
+        # 2.response格式为生成器，代表本次响应需要执行流式事件输出
+        def generate() -> Generator:
+            """构建generate函数，流式从response中获取数据"""
+
+            '''
+            yield from response
+            将当前生成器的执行权 临时转移 给另一个生成器（response），并直接 逐项 从该生成器中获取数据，
+            再通过当前生成器向外传递.
+            相当于以下代码的简写：
+                for item in response:  # 遍历 response 生成器的每一项
+                    yield item         # 将 item 传递给外层生成器
+            '''
+            yield from response
+
+        # 3.返回携带上下文的流式事件输出
+        return FlaskResponse(
+            stream_with_context(generate()),
+            status=200,
+            mimetype="text/event-stream",
+        )

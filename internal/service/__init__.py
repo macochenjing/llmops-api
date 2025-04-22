@@ -22,6 +22,7 @@ from .keyword_table_service import KeywordTableService
 from .process_rule_service import ProcessRuleService
 from .document_service import DocumentService
 from .segment_service import SegmentService
+from .conversation_service import ConversationService
 
 
 
@@ -42,4 +43,5 @@ __all__ = [
     "ProcessRuleService",
     "DocumentService",
     "SegmentService",
+    "ConversationService",
 ]
