@@ -11,7 +11,7 @@ from uuid import UUID
 
 from langchain_core.callbacks import CallbackManagerForRetrieverRun
 from langchain_core.documents import Document as LCDocument
-from langchain_core.pydantic_v1 import Field
+from pydantic import BaseModel, Field
 from langchain_core.retrievers import BaseRetriever
 from langchain_weaviate import WeaviateVectorStore
 from weaviate.classes.query import Filter
