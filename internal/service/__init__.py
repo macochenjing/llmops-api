@@ -23,7 +23,7 @@ from .process_rule_service import ProcessRuleService
 from .document_service import DocumentService
 from .segment_service import SegmentService
 from .conversation_service import ConversationService
-
+from .jwt_service import JwtService
 
 
 __all__ = [
@@ -44,4 +44,5 @@ __all__ = [
     "DocumentService",
     "SegmentService",
     "ConversationService",
+    "JwtService",
 ]
