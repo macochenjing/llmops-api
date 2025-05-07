@@ -18,6 +18,7 @@ from internal.handler import (
     DatasetHandler,
     DocumentHandler,
     SegmentHandler,
+    OAuthHandler,
 )
 
 
@@ -32,6 +33,7 @@ class Router:
     dataset_handler: DatasetHandler
     document_handler: DocumentHandler
     segment_handler: SegmentHandler
+    oauth_handler: OAuthHandler
 
     def register_router(self, app: Flask):
         """注册路由"""
@@ -187,8 +189,32 @@ class Router:
             view_func=self.dataset_handler.hit,
         )
 
+        # 6.授权认证模块
+        bp.add_url_rule(
+            "/oauth/<string:provider_name>",
+            view_func=self.oauth_handler.provider,
+        )
+        bp.add_url_rule(
+            "/oauth/authorize/<string:provider_name>",
+            methods=["POST"],
+            view_func=self.oauth_handler.authorize,
+        )
+        bp.add_url_rule(
+            "/auth/password-login",
+            methods=["POST"],
+            view_func=self.auth_handler.password_login,
+        )
+        bp.add_url_rule(
+            "/auth/logout",
+            methods=["POST"],
+            view_func=self.auth_handler.logout,
+        )
 
-
+        # # 7.账号设置模块
+        # bp.add_url_rule("/account", view_func=self.account_handler.get_current_user)
+        # bp.add_url_rule("/account/password", methods=["POST"], view_func=self.account_handler.update_password)
+        # bp.add_url_rule("/account/name", methods=["POST"], view_func=self.account_handler.update_name)
+        # bp.add_url_rule("/account/avatar", methods=["POST"], view_func=self.account_handler.update_avatar)
 
         # 3.在应用上去注册蓝图
         app.register_blueprint(bp)

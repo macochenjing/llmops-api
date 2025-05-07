@@ -13,7 +13,7 @@ from .upload_file_handler import UploadFileHandler
 from .dataset_handler import DatasetHandler
 from .document_handler import DocumentHandler
 from .segment_handler import SegmentHandler
-
+from .oauth_handler import OAuthHandler
 
 __all__ = [
     "AppHandler",
@@ -23,5 +23,6 @@ __all__ = [
     "DatasetHandler",
     "DocumentHandler",
     "SegmentHandler",
+    "OAuthHandler",
 
 ]

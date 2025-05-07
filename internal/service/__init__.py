@@ -25,7 +25,7 @@ from .segment_service import SegmentService
 from .conversation_service import ConversationService
 from .jwt_service import JwtService
 from .account_service import AccountService
-
+from .oauth_service import OAuthService
 
 
 __all__ = [
@@ -48,4 +48,6 @@ __all__ = [
     "ConversationService",
     "JwtService",
     "AccountService",
+    "OAuthService",
+
 ]
