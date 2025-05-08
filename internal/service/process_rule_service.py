@@ -57,3 +57,4 @@ class ProcessRuleService:
                 text = re.sub(pattern, '', text)
 
         return text
+

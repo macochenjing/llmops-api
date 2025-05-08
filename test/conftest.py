@@ -17,11 +17,10 @@
 #     with appserver.test_client() as client:
 #         yield client # 不使用return的好处是：便于上下文管理，使用完会回到此处，可以继续往后执行，比如可能需要清理资源等等
 
-
 import pytest
 from sqlalchemy.orm import sessionmaker, scoped_session
 
-from app.http.llmapp import appserver as _app
+from app.http.llmapp import app as _app
 from internal.extension.database_extension import db as _db
 
 
@@ -36,6 +35,8 @@ def app():
 def client(app):
     """获取Flask应用的测试应用，并返回"""
     with app.test_client() as client:
+        access_token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI0NmRiMzBkMS0zMTk5LTRlNzktYTBjZC1hYmYxMmZhNjg1OGYiLCJpc3MiOiJsbG1vcHMiLCJleHAiOjE3MzM1MDU2NTR9.HSKjINY58fzengY3BmxIDOnJyACnBnz9NmgVN3y02iI"
+        client.environ_base["HTTP_AUTHORIZATION"] = f"Bearer {access_token}"
         yield client
 
 
