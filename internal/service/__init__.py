@@ -8,6 +8,7 @@
 
 from .api_tool_service import ApiToolService
 from .app_service import AppService
+from .ai_service import AIService
 from .base_service import BaseService
 from .dataset_service import DatasetService
 from .builtin_tool_service import BuiltinToolService
@@ -30,6 +31,7 @@ from .oauth_service import OAuthService
 
 __all__ = [
     "BaseService",
+    "AIService",
     "AppService",
     "VectorDatabaseService",
     "DatasetService",

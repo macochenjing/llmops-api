@@ -7,6 +7,7 @@
 """
 
 from .app_hander import AppHandler
+from .ai_handler import AIHandler
 from .builtin_tool_handler import BuiltinToolHandler
 from .api_tool_handler import ApiToolHandler
 from .upload_file_handler import UploadFileHandler
@@ -19,6 +20,7 @@ from .auth_handler import AuthHandler
 
 __all__ = [
     "AppHandler",
+    "AIHandler",
     "BuiltinToolHandler",
     "ApiToolHandler",
     "UploadFileHandler",

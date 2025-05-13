@@ -6,10 +6,11 @@
 @File   : router.py
 """
 
-from injector import inject
 from dataclasses import dataclass
 
 from flask import Flask, Blueprint
+from injector import inject
+
 from internal.handler import (
     AppHandler,
     BuiltinToolHandler,
@@ -21,11 +22,12 @@ from internal.handler import (
     OAuthHandler,
     AccountHandler,
     AuthHandler,
+    AIHandler,
 )
 
 
 @inject
-@dataclass #简化注入的代码逻辑, 无需构造函数__init__(), 它会默认生成构造函数
+@dataclass
 class Router:
     """路由"""
     app_handler: AppHandler
@@ -38,6 +40,7 @@ class Router:
     oauth_handler: OAuthHandler
     account_handler: AccountHandler
     auth_handler: AuthHandler
+    ai_handler: AIHandler
 
     def register_router(self, app: Flask):
         """注册路由"""
@@ -45,23 +48,62 @@ class Router:
         bp = Blueprint("llmops", __name__, url_prefix="")
 
         # 2.将url与对应的控制器方法做绑定
-        # bp.add_url_rule("/ping", view_func=self.app_handler.ping)
-
-        bp.add_url_rule("/apps/<uuid:app_id>/debug", methods=["POST"], view_func=self.app_handler.debug)
-
-        # 跨域，每个请求都要添加OPTIONS方法选项, 所属方案1
-        # bp.add_url_rule("/apps/<uuid:app_id>/debug", methods=["POST", "OPTIONS"], view_func=self.app_handler.debug)
-
-        # bp.add_url_rule("/app", methods=["POST"], view_func=self.app_handler.create_app)
-        #
-        # # <uuid:id> uuid是类型, 绑定了id
-        # bp.add_url_rule("/app/<uuid:id>", view_func=self.app_handler.get_app)
-        #
-        # # <uuid:id> uuid是类型, 绑定了id
-        # bp.add_url_rule("/app/<uuid:id>", methods=["POST"], view_func=self.app_handler.update_app)
-        #
-        # # <uuid:id> uuid是类型, 绑定了id
-        # bp.add_url_rule("/app/<uuid:id>/delete", methods=["POST"], view_func=self.app_handler.delete_app)
+        bp.add_url_rule("/ping", view_func=self.app_handler.ping)
+        bp.add_url_rule("/apps", methods=["POST"], view_func=self.app_handler.create_app)
+        bp.add_url_rule("/apps/<uuid:app_id>", view_func=self.app_handler.get_app)
+        bp.add_url_rule("/apps/<uuid:app_id>/draft-app-config", view_func=self.app_handler.get_draft_app_config)
+        bp.add_url_rule(
+            "/apps/<uuid:app_id>/draft-app-config",
+            methods=["POST"],
+            view_func=self.app_handler.update_draft_app_config,
+        )
+        bp.add_url_rule(
+            "/apps/<uuid:app_id>/publish",
+            methods=["POST"],
+            view_func=self.app_handler.publish,
+        )
+        bp.add_url_rule(
+            "/apps/<uuid:app_id>/cancel-publish",
+            methods=["POST"],
+            view_func=self.app_handler.cancel_publish,
+        )
+        bp.add_url_rule(
+            "/apps/<uuid:app_id>/publish-histories",
+            view_func=self.app_handler.get_publish_histories_with_page,
+        )
+        bp.add_url_rule(
+            "/apps/<uuid:app_id>/fallback-history",
+            methods=["POST"],
+            view_func=self.app_handler.fallback_history_to_draft,
+        )
+        bp.add_url_rule(
+            "/apps/<uuid:app_id>/summary",
+            view_func=self.app_handler.get_debug_conversation_summary,
+        )
+        bp.add_url_rule(
+            "/apps/<uuid:app_id>/summary",
+            methods=["POST"],
+            view_func=self.app_handler.update_debug_conversation_summary,
+        )
+        bp.add_url_rule(
+            "/apps/<uuid:app_id>/conversations/delete-debug-conversation",
+            methods=["POST"],
+            view_func=self.app_handler.delete_debug_conversation,
+        )
+        bp.add_url_rule(
+            "/apps/<uuid:app_id>/conversations",
+            methods=["POST"],
+            view_func=self.app_handler.debug_chat,
+        )
+        bp.add_url_rule(
+            "/apps/<uuid:app_id>/conversations/tasks/<uuid:task_id>/stop",
+            methods=["POST"],
+            view_func=self.app_handler.stop_debug_chat,
+        )
+        bp.add_url_rule(
+            "/apps/<uuid:app_id>/conversations/messages",
+            view_func=self.app_handler.get_debug_conversation_messages_with_page,
+        )
 
         # 3.内置插件广场模块
         bp.add_url_rule("/builtin-tools", view_func=self.builtin_tool_handler.get_builtin_tools)
@@ -220,5 +262,12 @@ class Router:
         bp.add_url_rule("/account/name", methods=["POST"], view_func=self.account_handler.update_name)
         bp.add_url_rule("/account/avatar", methods=["POST"], view_func=self.account_handler.update_avatar)
 
-        # 3.在应用上去注册蓝图
+        # 8.AI辅助模块
+        bp.add_url_rule("/ai/optimize-prompt", methods=["POST"], view_func=self.ai_handler.optimize_prompt)
+        bp.add_url_rule(
+            "/ai/suggested-questions", methods=["POST"],
+            view_func=self.ai_handler.generate_suggested_questions,
+        )
+
+        # 6.在应用上注册蓝图
         app.register_blueprint(bp)
