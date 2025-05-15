@@ -61,7 +61,7 @@ class GetAppResp(Schema):
 
 
 class GetPublishHistoriesWithPageReq(PaginatorReq):
-    """获取应用发布历史配置分页列表请求"""
+    """获取应用发布历史配置分页列表请求 无需额外参数 ..."""
     ...
 
 
