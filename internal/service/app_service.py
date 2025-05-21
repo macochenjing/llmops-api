@@ -49,7 +49,7 @@ from internal.schema.app_schema import (
     GetDebugConversationMessagesWithPageReq,
 )
 from pkg.paginator import Paginator
-from pkg.sql.sqlalchemy import SQLAlchemy
+from pkg.sqlalchemy import SQLAlchemy
 from .base_service import BaseService
 from .conversation_service import ConversationService
 from .retrieval_service import RetrievalService
@@ -249,6 +249,7 @@ class AppService(BaseService):
             "opening_questions": draft_app_config.opening_questions,
             "speech_to_text": draft_app_config.speech_to_text,
             "text_to_speech": draft_app_config.text_to_speech,
+            "suggested_after_answer": draft_app_config.suggested_after_answer,
             "review_config": draft_app_config.review_config,
             "updated_at": datetime_to_timestamp(draft_app_config.updated_at),
             "created_at": datetime_to_timestamp(draft_app_config.created_at),
@@ -308,6 +309,7 @@ class AppService(BaseService):
             opening_questions=draft_app_config["opening_questions"],
             speech_to_text=draft_app_config["speech_to_text"],
             text_to_speech=draft_app_config["text_to_speech"],
+            suggested_after_answer=draft_app_config["suggested_after_answer"],
             review_config=draft_app_config["review_config"],
         )
 
@@ -779,7 +781,7 @@ class AppService(BaseService):
             "model_config", "dialog_round", "preset_prompt",
             "tools", "workflows", "datasets", "retrieval_config",
             "long_term_memory", "opening_statement", "opening_questions",
-            "speech_to_text", "text_to_speech", "review_config",
+            "speech_to_text", "text_to_speech", "suggested_after_answer", "review_config",
         ]
 
         # 2.判断传递的草稿配置是否在可接受字段内
@@ -977,20 +979,34 @@ class AppService(BaseService):
             ):
                 raise ValidateErrorException("文本转语音设置格式错误")
 
-        # 15.校验review_config审核配置
+        # 15.校验回答后生成建议问题
+        if "suggested_after_answer" in draft_app_config:
+            suggested_after_answer = draft_app_config["suggested_after_answer"]
+
+            # 10.1 校验回答后建议问题格式
+            if not suggested_after_answer or not isinstance(suggested_after_answer, dict):
+                raise ValidateErrorException("回答后建议问题设置格式错误")
+            # 10.2 校验回答后建议问题格式
+            if (
+                    set(suggested_after_answer.keys()) != {"enable"}
+                    or not isinstance(suggested_after_answer["enable"], bool)
+            ):
+                raise ValidateErrorException("回答后建议问题设置格式错误")
+
+        # 16.校验review_config审核配置
         if "review_config" in draft_app_config:
             review_config = draft_app_config["review_config"]
 
-            # 15.1 校验字段格式，非空
+            # 16.1 校验字段格式，非空
             if not review_config or not isinstance(review_config, dict):
                 raise ValidateErrorException("审核配置格式错误")
-            # 15.2 校验字段信息
+            # 16.2 校验字段信息
             if set(review_config.keys()) != {"enable", "keywords", "inputs_config", "outputs_config"}:
                 raise ValidateErrorException("审核配置格式错误")
-            # 15.3 校验enable
+            # 16.3 校验enable
             if not isinstance(review_config["enable"], bool):
                 raise ValidateErrorException("review.enable格式错误")
-            # 15.4 校验keywords
+            # 16.4 校验keywords
             if (
                     not isinstance(review_config["keywords"], list)
                     or (review_config["enable"] and len(review_config["keywords"]) == 0)
@@ -1000,7 +1016,7 @@ class AppService(BaseService):
             for keyword in review_config["keywords"]:
                 if not isinstance(keyword, str):
                     raise ValidateErrorException("review.keywords敏感词必须是字符串")
-            # 15.5 校验inputs_config输入配置
+            # 16.5 校验inputs_config输入配置
             if (
                     not review_config["inputs_config"]
                     or not isinstance(review_config["inputs_config"], dict)
@@ -1009,7 +1025,7 @@ class AppService(BaseService):
                     or not isinstance(review_config["inputs_config"]["preset_response"], str)
             ):
                 raise ValidateErrorException("review.inputs_config必须是一个字典")
-            # 15.6 校验outputs_config输出配置
+            # 16.6 校验outputs_config输出配置
             if (
                     not review_config["outputs_config"]
                     or not isinstance(review_config["outputs_config"], dict)
@@ -1017,7 +1033,7 @@ class AppService(BaseService):
                     or not isinstance(review_config["outputs_config"]["enable"], bool)
             ):
                 raise ValidateErrorException("review.outputs_config格式错误")
-            # 15.7 在开启审核模块的时候，必须确保inputs_config或者是outputs_config至少有一个是开启的
+            # 16.7 在开启审核模块的时候，必须确保inputs_config或者是outputs_config至少有一个是开启的
             if review_config["enable"]:
                 if (
                         review_config["inputs_config"]["enable"] is False
