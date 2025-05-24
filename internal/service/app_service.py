@@ -49,7 +49,7 @@ from internal.schema.app_schema import (
     GetDebugConversationMessagesWithPageReq,
 )
 from pkg.paginator import Paginator
-from pkg.sqlalchemy import SQLAlchemy
+from pkg.sql.sqlalchemy import SQLAlchemy
 from .base_service import BaseService
 from .conversation_service import ConversationService
 from .retrieval_service import RetrievalService
