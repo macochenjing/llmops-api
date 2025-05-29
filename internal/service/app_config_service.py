@@ -5,7 +5,6 @@
 @Author : chenjingmaco@gmail.com
 @File   : app_config_service.py
 """
-
 from dataclasses import dataclass
 from typing import Any, Union
 
@@ -18,7 +17,7 @@ from internal.core.tools.api_tools.providers import ApiProviderManager
 from internal.core.tools.builtin_tools.providers import BuiltinProviderManager
 from internal.lib.helper import datetime_to_timestamp
 from internal.model import App, ApiTool, Dataset, AppConfig, AppConfigVersion, AppDatasetJoin
-from pkg.sql.sqlalchemy import SQLAlchemy
+from pkg.sqlalchemy import SQLAlchemy
 from .base_service import BaseService
 
 
