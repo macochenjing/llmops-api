@@ -19,7 +19,7 @@ from .account_handler import AccountHandler
 from .auth_handler import AuthHandler
 from .api_key_handler import ApiKeyHandler
 from .openapi_handler import OpenAPIHandler
-
+from .builtin_app_handler import BuiltinAppHandler
 
 
 
@@ -39,5 +39,6 @@ __all__ = [
     "AuthHandler",
     "ApiKeyHandler",
     "OpenAPIHandler",
+    "BuiltinAppHandler",
 
 ]
