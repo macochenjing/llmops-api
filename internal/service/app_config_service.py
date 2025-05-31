@@ -17,7 +17,7 @@ from internal.core.tools.api_tools.providers import ApiProviderManager
 from internal.core.tools.builtin_tools.providers import BuiltinProviderManager
 from internal.lib.helper import datetime_to_timestamp
 from internal.model import App, ApiTool, Dataset, AppConfig, AppConfigVersion, AppDatasetJoin
-from pkg.sqlalchemy import SQLAlchemy
+from pkg.sql.sqlalchemy import SQLAlchemy
 from .base_service import BaseService
 
 
