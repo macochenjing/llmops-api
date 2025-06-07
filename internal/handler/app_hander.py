@@ -6,7 +6,6 @@
 @File   : app_hander.py
 """
 
-import uuid
 from dataclasses import dataclass
 from uuid import UUID
 
@@ -14,6 +13,7 @@ from flask import request
 from flask_login import login_required, current_user
 from injector import inject
 
+from internal.core.language_model import LanguageModelManager
 from internal.schema.app_schema import (
     CreateAppReq,
     UpdateAppReq,
@@ -39,6 +39,7 @@ class AppHandler:
     """应用控制器"""
     app_service: AppService
     retrieval_service: RetrievalService
+    language_model_manager: LanguageModelManager
 
     @login_required
     def create_app(self):
@@ -222,20 +223,16 @@ class AppHandler:
 
     @login_required
     def ping(self):
-        from internal.core.agent.agents import FunctionCallAgent
-        from internal.core.agent.entities.agent_entity import AgentConfig
-        from langchain_openai import ChatOpenAI
-        from langchain_core.messages import HumanMessage
-        from internal.core.tools.builtin_tools.providers.google import google_serper
-
-        agent = FunctionCallAgent(
-            llm=ChatOpenAI(model="gpt-4o-mini"),
-            agent_config=AgentConfig(
-                user_id=uuid.uuid4(),
-                tools=[google_serper()],
-            )
-        )
-
-        agent_result = agent.invoke({"messages": [HumanMessage("帮我搜索下2024年北京半程马拉松的前3名成绩是多少")]})
-
-        return success_json({"agent_result": agent_result.model_dump()})
+        provider = self.language_model_manager.get_provider("ollama")
+        model_entity = provider.get_model_entity("qwen2.5-7b")
+        model_class = provider.get_model_class(model_entity.model_type)
+        llm = model_class(**{
+            **model_entity.attributes,
+            "features": model_entity.features,
+            "metadata": model_entity.metadata,
+        })
+        return success_json({
+            "content": llm.invoke("你好，你是").content,
+            "features": llm.features,
+            "metadata": llm.metadata,
+        })
