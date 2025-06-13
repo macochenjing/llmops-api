@@ -48,6 +48,9 @@ class VectorDatabaseService:
             # embedding=self.embeddings_service.embeddings,
         )
 
+        # 避免警告，这里先关
+        self.client.close()
+
     def get_retriever(self) -> VectorStoreRetriever:
         """获取检索器"""
         return self.vector_store.as_retriever()
